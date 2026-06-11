@@ -1,53 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: db
   namespace: tienda
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: db
   template:
     metadata:
       labels:
-        app: backend
+        app: db
     spec:
       containers:
-        - name: backend
-          image: 637737665210.dkr.ecr.us-east-1.amazonaws.com/tienda-perritos-backend:latest
+        - name: mysql
+          image: mysql:8.0
           ports:
-            - containerPort: 3001
+            - containerPort: 3306
           env:
-            - name: PORT
-              value: "3001"
-            - name: DB_HOST
-              value: "db"
-            - name: DB_USER
-              value: "root"
-            - name: DB_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_ROOT_PASSWORD
-            - name: DB_NAME
+            - name: MYSQL_DATABASE
               valueFrom:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_DATABASE
-            - name: DB_PORT
-              value: "3306"
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: db
   namespace: tienda
 spec:
   selector:
-    app: backend
+    app: db
   ports:
     - protocol: TCP
-      port: 3001
-      targetPort: 3001
+      port: 3306
+      targetPort: 3306
   type: ClusterIP
