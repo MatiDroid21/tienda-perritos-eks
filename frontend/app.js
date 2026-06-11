@@ -2,15 +2,8 @@
  * Frontend simple para CRUD de productos de la tienda de perritos.
  */
 
-// Determinar la URL base de la API según el host
-const API_BASE = (() => {
-  const host = window.location.hostname;
-  if (host === "localhost" || host === "127.0.0.1") {
-    return "http://localhost:3001/api/productos";
-  }
-  // Para ejecución en EC2 u otro host, usar el mismo hostname y puerto 3001
-  return `http://${host}:3001/api/productos`;
-})();
+// Usar ruta relativa para que Nginx haga el proxy al backend
+const API_BASE = "/api/productos";
 
 let editandoId = null;
 
@@ -64,7 +57,6 @@ function renderProductos(productos) {
     tbody.appendChild(tr);
   });
 
-  // Asignar eventos a los botones
   document.querySelectorAll(".btn-editar").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-id");
@@ -118,14 +110,12 @@ async function guardarProducto() {
   try {
     let res;
     if (editandoId) {
-      // Actualizar
       res = await fetch(`${API_BASE}/${editandoId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(producto),
       });
     } else {
-      // Crear
       res = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,7 +167,6 @@ async function eliminarProducto(id) {
   }
 }
 
-// Eventos
 btnCargar.addEventListener("click", cargarProductos);
 btnGuardar.addEventListener("click", guardarProducto);
 btnCancelar.addEventListener("click", () => {
@@ -185,5 +174,4 @@ btnCancelar.addEventListener("click", () => {
   setStatus("Edición cancelada.", "ok");
 });
 
-// Cargar productos al iniciar
 cargarProductos();
